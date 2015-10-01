@@ -46,6 +46,84 @@ RSpec.describe GameOfLife::Cell do
       end
     end
   end
+
+  describe "#neighbours" do
+    subject { random_cell }
+    it { is_expected.to respond_to :neighbours }
+
+    context "with no neighbours" do
+      subject { random_cell }
+
+      it "returns empty" do
+        expect(subject.neighbours).to be_empty
+      end
+    end
+
+    context "with a neighbour" do
+      subject { random_cell }
+      let(:neighbour) { described_class.new(subject.x, subject.y + 1) }
+
+      before do
+        subject.new_cell(neighbour)
+      end
+
+      it "includes that neighbour" do
+        expect(subject.neighbours).to include neighbour
+      end
+    end
+  end
+
+  describe "#new_cell" do
+    subject { random_cell }
+
+    it { is_expected.to respond_to :new_cell }
+
+    context "when not neighbours" do
+      let (:far_away) { described_class.new(subject.x + rand(5), subject.y + rand(5)) }
+
+      before do
+        subject.new_cell far_away
+      end
+
+      it "is not tracked by cell" do
+        expect(subject.neighbours).to_not include far_away
+      end
+    end
+
+    context "when new cell is a neighbour" do
+      let(:all_neighbours) do
+        [
+          [subject.x + 1, subject.y],
+          [subject.x - 1, subject.y],
+
+          [subject.x, subject.y + 1],
+          [subject.x, subject.y - 1],
+
+          [subject.x + 1, subject.y + 1],
+          [subject.x + 1, subject.y - 1],
+
+          [subject.x + 1, subject.y + 1],
+          [subject.x - 1, subject.y + 1],
+        ]
+      end
+      let(:other) { described_class.new(*all_neighbours.sample) }
+
+      it "is tracked by cell" do
+        subject.new_cell other
+
+        expect(subject.neighbours).to include other
+      end
+
+      it "tracks all its neighbours" do
+        all_neighbours.each do |neighbour_coord|
+          subject.new_cell described_class.new(*neighbour_coord)
+        end
+
+        expect(subject.neighbours.length).to be all_neighbours.length
+        expect(subject.neighbours.map(&:coordinates)).to match_array all_neighbours
+      end
+    end
+  end
 end
 
 RSpec.describe GameOfLife::World do
