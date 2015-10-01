@@ -8,7 +8,7 @@ require "game_of_life"
 RSpec.describe GameOfLife::Cell do
 
   context "when initialized" do
-    subject { described_class.new(1, 1) }
+    subject { random_cell }
 
     it { is_expected.to be_an_instance_of described_class }
 
@@ -24,6 +24,26 @@ RSpec.describe GameOfLife::Cell do
     it "returns enumerable of coordinates" do
       expect(subject.coordinates.first).to eql 4
       expect(subject.coordinates.last).to  eql 3
+    end
+  end
+
+  describe "#world" do
+    let (:world) { build_world }
+
+    context "without a world" do
+      subject { random_cell }
+
+      it "returns nil" do
+        expect(subject.world).to be_nil
+      end
+    end
+
+    context "when living in a world" do
+      subject { random_cell(living_in: world) }
+
+      it "returns the world the cell lives in" do
+        expect(subject.world).to be world
+      end
     end
   end
 end
@@ -79,9 +99,104 @@ RSpec.describe GameOfLife::World do
     end
   end
 
-  def random_cell(range = (-10..10))
-    points = range.to_a
+  describe "#add_cell" do
+    it { is_expected.to respond_to :add_cell }
 
-    GameOfLife::Cell.new(points.sample, points.sample)
+    context "when cell doesn't already exist" do
+      subject    {described_class.new }
+      let(:cell) { random_cell }
+
+      before do
+        subject.add_cell(cell)
+      end
+
+      it "adds the cell to the world" do
+        expect(subject.cells).to include cell
+      end
+
+      it "sets the cell's world" do
+        expect(cell.world).to be subject
+      end
+    end
   end
+
+  describe "#new_cell_at" do
+    it { is_expected.to respond_to :new_cell_at }
+
+    context "when new cell added to empty world" do
+      subject     { described_class.new }
+      let(:coord) { [rand(10).to_i, rand(10).to_i] }
+
+      it "adds a new cell" do
+        expect {
+          subject.new_cell_at(*coord)
+        }.to change {
+          subject.cells.count
+        }.from(0).to 1
+      end
+
+      it "adds cell to world" do
+        new_cell = subject.new_cell_at(*coord)
+
+        expect(subject.cells).to include new_cell
+      end
+
+      it "sets world on cell" do
+        new_cell = subject.new_cell_at(*coord)
+
+        expect(new_cell.world).to be subject
+      end
+
+      it "adds cell to supplied coordinates" do
+        subject.new_cell_at(*coord)
+
+        added_cell = subject.cells.first
+
+        expect(added_cell.x).to be coord.first
+        expect(added_cell.y).to be coord.last
+      end
+
+      it "returns the added cell" do
+        new_cell = subject.new_cell_at(*coord)
+
+        expect(new_cell).to be_an_instance_of GameOfLife::Cell
+      end
+    end
+
+    context "when cell exists at coordinates" do
+      subject { described_class.new }
+      let!(:existing_cell) { random_cell(living_in: subject) }
+
+      it "does not add a cell" do
+        expect {
+          subject.new_cell_at(existing_cell.x, existing_cell.y)
+        }.to_not change {
+          subject.cells.count
+        }
+      end
+
+      it "returns nil" do
+        expect(subject.new_cell_at(existing_cell.x, existing_cell.y)).to be_nil
+      end
+    end
+  end
+end
+
+def random_cell(options = {})
+  options = {
+    range: (-10..10),
+    living_in: nil
+  }.merge(options)
+
+  points = options[:range].to_a
+
+  cell = GameOfLife::Cell.new(points.sample, points.sample)
+
+  options[:living_in].add_cell(cell) if options[:living_in]
+
+  cell
+end
+
+def build_world
+  GameOfLife::World.new
 end
