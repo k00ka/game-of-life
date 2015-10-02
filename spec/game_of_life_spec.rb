@@ -89,7 +89,11 @@ RSpec.describe GameOfLife::Cell do
   describe "#new_cell" do
     subject { random_cell }
 
-    it { is_expected.to respond_to :new_cell }
+    it "does not add itself as a neighbour" do
+      subject.new_cell(subject)
+
+      expect(subject.neighbours).to_not include subject
+    end
 
     context "when new cell is not a neighbour" do
       let (:far_away) { described_class.new(subject.x + 2, subject.y + 2) }
@@ -157,6 +161,65 @@ RSpec.describe GameOfLife::Cell do
 
       expected = Set.new(adjacent_coordinates(subject.x, subject.y)) - neighbour_cells.map(&:coordinates)
       expect(subject.influenced_coordinates).to match_array expected
+    end
+  end
+
+  describe "#dying?" do
+    subject(:world) { build_world }
+
+    context "with no adjacent cells" do
+      subject(:cell) { random_cell }
+
+      before do
+        world.add_cell(cell)
+      end
+
+      it "is true" do
+        expect(cell).to be_dying
+      end
+    end
+
+    context "with one adjacent cells" do
+      subject(:cell) { random_cell }
+      let(:neighbours) { neighbour_cell_for(cell) }
+
+      it "is true" do
+        expect(cell).to be_dying
+      end
+    end
+
+    context "with two adjacent cells" do
+      subject(:cell) { random_cell }
+      let(:neighbours) do
+        coords = adjacent_coordinates(cell.x, cell.y).sample(2)
+        coords.map { |coord| described_class.new *coord }
+      end
+
+      before do
+        world.add_cell(cell)
+        neighbours.each { |neighbour| world.add_cell(neighbour) }
+      end
+
+      it "is false" do
+        expect(cell).to_not be_dying
+      end
+    end
+
+    context "with more than three adjacent cells" do
+      subject(:cell) { random_cell }
+      let(:neighbours) do
+        coords = adjacent_coordinates(cell.x, cell.y).sample((4..8).to_a.sample)
+        coords.map { |coord| described_class.new *coord }
+      end
+
+      before do
+        world.add_cell(cell)
+        neighbours.each { |neighbour| world.add_cell(neighbour) }
+      end
+
+      it "is true" do
+        expect(cell).to be_dying
+      end
     end
   end
 end
@@ -290,6 +353,83 @@ RSpec.describe GameOfLife::World do
 
       it "returns nil" do
         expect(subject.new_cell_at(existing_cell.x, existing_cell.y)).to be_nil
+      end
+    end
+  end
+
+  describe "#step" do
+    context "with a single cell" do
+      subject(:cell)  { random_cell }
+      subject(:world) { build_world(cells: [cell]) }
+
+      before do
+        world.step
+      end
+
+      it "the lone cell dies" do
+        expect(world.cells).to be_empty
+      end
+    end
+
+    context "with static patterns" do
+      subject(:world) do
+        world = build_world
+        coordinates.each { |coord| world.new_cell_at *coord }
+        world
+      end
+
+      before do
+        world.step
+      end
+
+      # - - - -
+      # - # # -
+      # - # # -
+      # - - - -
+      describe "block" do
+        let(:coordinates) { [[1, 1], [1, 2], [2, 1],[2, 2,]] }
+
+        it "stays the same" do
+          expect(world.cells.map(&:coordinates)).to match_array coordinates
+        end
+      end
+
+      # - - - - - -
+      # - - # # - -
+      # - # - - # -
+      # - - # # - -
+      # - - - - - -
+      describe "beehive" do
+        let(:coordinates) do
+          [
+            [1, 3], [1, 4],
+            [2, 2], [2, 5],
+            [3, 3], [3, 4]
+          ]
+        end
+
+        it "stays the same" do
+          expect(world.cells.map(&:coordinates)).to match_array coordinates
+        end
+      end
+
+      # - - - - -
+      # - # # - -
+      # - # - # -
+      # - - # - -
+      # - - - - -
+      describe "boat" do
+        let (:coordinates) do
+          [
+            [1, 3],
+            [2, 2], [2, 4],
+            [3, 2], [3, 3]
+          ]
+        end
+
+        it "stays the same" do
+          expect(world.cells.map(&:coordinates)).to match_array coordinates
+        end
       end
     end
   end

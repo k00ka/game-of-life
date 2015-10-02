@@ -18,6 +18,8 @@ module GameOfLife
     end
 
     def new_cell(other)
+      return if other == self
+
       if neighbour?(other) && !neighbours.include?(other)
         @neighbours << other
         other.new_cell(self)
@@ -26,6 +28,17 @@ module GameOfLife
 
     def influenced_coordinates
       adjacent_coordinates - Set.new(neighbours.map(&:coordinates))
+    end
+
+    def dying?
+      case neighbours.count
+      when 0, 1
+        true
+      when 2, 3
+        false
+      else
+        true
+      end
     end
 
     private
@@ -68,7 +81,7 @@ module GameOfLife
     def add_cell(cell)
       cell.world = self
 
-      @cells.each { |cell| cell.new_cell(cell) }
+      @cells.each { |existing_cell| existing_cell.new_cell(cell) }
 
       @cells << cell
 
@@ -81,6 +94,12 @@ module GameOfLife
       else
         add_cell Cell.new(*coordinates)
       end
+    end
+
+    def step
+      dying_cells = cells.select(&:dying?)
+
+      dying_cells.each { |dying| @cells.delete(dying) }
     end
   end
 end
