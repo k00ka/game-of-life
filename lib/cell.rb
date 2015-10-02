@@ -25,6 +25,10 @@ module GameOfLife
       end
     end
 
+    def remove_dying_neighbours
+      @neighbours.delete_if { |neighbour| neighbour.dying? }
+    end
+
     def influenced_coordinates
       adjacent_coordinates - Set.new(neighbours.map(&:coordinates))
     end
