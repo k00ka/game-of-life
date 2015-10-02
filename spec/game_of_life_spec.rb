@@ -21,7 +21,7 @@ RSpec.describe GameOfLife::Cell do
 
     it { is_expected.to respond_to :coordinates }
 
-    it "returns enumerable of coordinates" do
+    it "returns coordinates" do
       expect(subject.coordinates.first).to eql 4
       expect(subject.coordinates.last).to  eql 3
     end
@@ -78,8 +78,8 @@ RSpec.describe GameOfLife::Cell do
 
     it { is_expected.to respond_to :new_cell }
 
-    context "when not neighbours" do
-      let (:far_away) { described_class.new(subject.x + rand(5), subject.y + rand(5)) }
+    context "when new cell is not a neighbour" do
+      let (:far_away) { described_class.new(subject.x + 2, subject.y + 2) }
 
       before do
         subject.new_cell far_away
@@ -91,37 +91,59 @@ RSpec.describe GameOfLife::Cell do
     end
 
     context "when new cell is a neighbour" do
-      let(:all_neighbours) do
-        [
-          [subject.x + 1, subject.y],
-          [subject.x - 1, subject.y],
+      let(:other) { neighbour_cell_for(subject) }
 
-          [subject.x, subject.y + 1],
-          [subject.x, subject.y - 1],
-
-          [subject.x + 1, subject.y + 1],
-          [subject.x + 1, subject.y - 1],
-
-          [subject.x + 1, subject.y + 1],
-          [subject.x - 1, subject.y + 1],
-        ]
-      end
-      let(:other) { described_class.new(*all_neighbours.sample) }
-
-      it "is tracked by cell" do
+      before do
         subject.new_cell other
+      end
 
+      it "is tracked by existing cell" do
         expect(subject.neighbours).to include other
       end
 
-      it "tracks all its neighbours" do
-        all_neighbours.each do |neighbour_coord|
-          subject.new_cell described_class.new(*neighbour_coord)
-        end
-
-        expect(subject.neighbours.length).to be all_neighbours.length
-        expect(subject.neighbours.map(&:coordinates)).to match_array all_neighbours
+      it "tracks existing cell" do
+        expect(other.neighbours).to include subject
       end
+    end
+
+    context "when many new cells are neighbours" do
+      let(:all_neighbours) do
+        adjacent_coordinates(subject.x, subject.y).map do |coord|
+          described_class.new(*coord)
+        end
+      end
+
+      before do
+        all_neighbours.each { |neighbour| subject.new_cell(neighbour) }
+      end
+
+      it "they are tracked by existing cell" do
+        expect(subject.neighbours).to match_array all_neighbours
+      end
+
+      it "they track existing cell" do
+        all_neighbours.each do |neighbour|
+          expect(neighbour.neighbours).to include subject
+        end
+      end
+    end
+  end
+
+  describe "#influenced_coordinates" do
+    subject { random_cell }
+
+    it { is_expected.to respond_to :influenced_coordinates }
+
+    it "returns adjacent coordinates" do
+      expect(subject.influenced_coordinates).to match_array adjacent_coordinates(subject.x, subject.y)
+    end
+
+    it "does not contain coordinates of neighbourhood cells" do
+      neighbour_cells = [neighbour_cell_for(subject), neighbour_cell_for(subject)]
+      neighbour_cells.each { |cell| subject.new_cell(cell) }
+
+      expected = Set.new(adjacent_coordinates(subject.x, subject.y)) - neighbour_cells.map(&:coordinates)
+      expect(subject.influenced_coordinates).to match_array expected
     end
   end
 end
@@ -273,6 +295,26 @@ def random_cell(options = {})
   options[:living_in].add_cell(cell) if options[:living_in]
 
   cell
+end
+
+def neighbour_cell_for(cell)
+  GameOfLife::Cell.new *adjacent_coordinates(cell.x, cell.y).sample
+end
+
+def adjacent_coordinates(x, y)
+  [
+    [x + 1, y],
+    [x - 1, y],
+
+    [x, y + 1],
+    [x, y - 1],
+
+    [x + 1, y + 1],
+    [x + 1, y - 1],
+
+    [x - 1, y + 1],
+    [x - 1, y - 1],
+  ]
 end
 
 def build_world

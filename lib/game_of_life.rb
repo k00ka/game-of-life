@@ -18,13 +18,33 @@ module GameOfLife
     end
 
     def new_cell(other)
-      @neighbours << other if neighbour?(other)
+      if neighbour?(other) && !neighbours.include?(other)
+        @neighbours << other
+        other.new_cell(self)
+      end
+    end
+
+    def influenced_coordinates
+      adjacent_coordinates - Set.new(neighbours.map(&:coordinates))
     end
 
     private
 
     def neighbour? other
       Math.sqrt((x - other.x) ** 2 + (y - other.y) ** 2) < 2
+    end
+
+    def adjacent_coordinates
+      Set.new [
+        [x + 1, y],
+        [x - 1, y],
+        [x, y + 1],
+        [x, y - 1],
+        [x + 1, y + 1],
+        [x + 1, y - 1],
+        [x - 1, y + 1],
+        [x - 1, y - 1],
+      ]
     end
   end
 
