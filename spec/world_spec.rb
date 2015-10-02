@@ -151,65 +151,60 @@ RSpec.describe GameOfLife::World do
       end
     end
 
-    context "with static patterns" do
-      subject(:world) do
-        world = build_world
-        coordinates.each { |coord| world.new_cell_at *coord }
-        world
-      end
+    shared_examples "a static pattern" do |pattern_title|
+      subject(:world) { build_world }
 
       before do
+        coordinates.each { |coord| world.new_cell_at *coord }
+
         world.step
       end
 
-      # - - - -
-      # - # # -
-      # - # # -
-      # - - - -
-      describe "block" do
-        let(:coordinates) { [[1, 1], [1, 2], [2, 1],[2, 2,]] }
-
-        it "stays the same" do
-          expect(world.cells.map(&:coordinates)).to match_array coordinates
-        end
+      it "#{pattern_title} remains static" do
+        expect(world.cells.map(&:coordinates)).to match_array coordinates
       end
+    end
 
+    it_behaves_like "a static pattern", "block" do
+      # - - - -
+      # - # # -
+      # - # # -
+      # - - - -
+      let(:coordinates) do
+        [
+          [1, 1], [1, 2],
+          [2, 1], [2, 2]
+        ]
+      end
+    end
+
+    it_behaves_like "a static pattern", "beehive" do
       # - - - - - -
       # - - # # - -
       # - # - - # -
       # - - # # - -
       # - - - - - -
-      describe "beehive" do
-        let(:coordinates) do
-          [
-            [1, 3], [1, 4],
-            [2, 2], [2, 5],
-            [3, 3], [3, 4]
-          ]
-        end
-
-        it "stays the same" do
-          expect(world.cells.map(&:coordinates)).to match_array coordinates
-        end
+      let(:coordinates) do
+        [
+          [1, 3], [1, 4],
+          [2, 2], [2, 5],
+          [3, 3], [3, 4]
+        ]
       end
+    end
 
+    it_behaves_like "a static pattern", "boat" do
       # - - - - -
       # - # # - -
       # - # - # -
       # - - # - -
       # - - - - -
-      describe "boat" do
-        let (:coordinates) do
-          [
-            [1, 3],
-            [2, 2], [2, 4],
-            [3, 2], [3, 3]
-          ]
-        end
-
-        it "stays the same" do
-          expect(world.cells.map(&:coordinates)).to match_array coordinates
-        end
+      let(:coordinates) do
+        [
+          [1, 3],
+          [2, 2], [2, 4],
+          [3, 2], [3, 3]
+        ]
       end
     end
   end
