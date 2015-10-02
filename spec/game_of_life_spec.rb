@@ -28,7 +28,7 @@ RSpec.describe GameOfLife::Cell do
   end
 
   describe "#world" do
-    let (:world) { build_world }
+    let(:world) { build_world }
 
     context "without a world" do
       subject { random_cell }
@@ -43,6 +43,19 @@ RSpec.describe GameOfLife::Cell do
 
       it "returns the world the cell lives in" do
         expect(subject.world).to be world
+      end
+    end
+
+    context "when initialized in a world" do
+      subject { random_cell }
+      let!(:world) { build_world(cells: [subject]) }
+
+      it "knows the world" do
+        expect(subject.world).to be world
+      end
+
+      it "the world knows it" do
+        expect(world.cells).to include subject
       end
     end
   end
@@ -317,6 +330,6 @@ def adjacent_coordinates(x, y)
   ]
 end
 
-def build_world
-  GameOfLife::World.new
+def build_world(options = {})
+  GameOfLife::World.new(options)
 end

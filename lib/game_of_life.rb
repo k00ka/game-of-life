@@ -54,7 +54,11 @@ module GameOfLife
         cells: Array.new
       }.merge(options)
 
-      @cells = options[:cells]
+      @cells = Array.new
+
+      if options[:cells].respond_to?(:each)
+        options[:cells].each { |cell| add_cell(cell) }
+      end
     end
 
     def cells
