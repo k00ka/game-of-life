@@ -1,5 +1,19 @@
-Game of Life Kata TDD Workshop
-==============================
+#Update Oct 2, 2015: Sparse Matrix Approach
+
+The game board is a key entity in the Game of Life. One of the core decisions is how to separate the concepts of Board and Cell. Almost all approaches end up with one or the other of Board or Cell being small or non-existent. The relationship between Cells must be modelled either by an ordered structure, or by connections between Cells (such as my suggestion of creating links from a Cell to its up-to-8 neighbours). In the former case, the Board ends up being a two-dimensional Array (or similar) with a vestigial Cell class that needs to ask the Board for help with everything except the answer to "Are you alive?". In the latter case, the Cell is a first-class entity and, unless the Board and Cell are highly coupled, the Board can do nothing but point to the "first" Cell.
+
+The sparse matrix approach uses a Dictionary of Keys [https://en.wikipedia.org/wiki/Sparse_matrix] to store the locations of the live cells. "Dead" cells are not stored. As Mark stated, it uses quite a bit less memory than most other approaches, and will scale quite well to very large Board dimensions. In a fully-defined version, the Cell class would be a real class rather than a Set [http://c2.com/cgi/wiki?PrimitiveObsession]. A Set (or Hash) makes sense since each has a quick lookup function. But because of this inappropriate choice, the Cell methods (such as #coord_to_key, #cell_alive? and #dead?) are part of the Board class (Primitive Obsession leads to this). Further, there are no tests. This should not be the case, but Code Retreat sessions are short!
+
+According to Code Retreat rules, this code should have been deleted at the end of the session, but I hope that you Ruby Hackers might find something useful in seeing the sparse matrix approach in the flesh. Enjoy.
+
+To start the game:
+ruby lib/play.rb
+
+To stop the game, type <Ctrl-C>. The game will automatically stop if all cells die.
+
+
+Game of Life Code Retreat Workshop
+==================================
 
 This repo contains an exercise for the tenth workshop - our first Code Retreat. This workshop is about developer skills. For this session we have based our activities on the Game of Life Code Retreat.
 
