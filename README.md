@@ -9,7 +9,7 @@ According to Code Retreat rules, this code should have been deleted at the end o
 To start the game:
 ruby lib/play.rb
 
-To stop the game, type <Ctrl-C>. The game will automatically stop if all cells die.
+To stop the game, type &lt;Ctrl-C&gt;. The game will automatically stop if all cells die.
 
 
 Game of Life Code Retreat Workshop
