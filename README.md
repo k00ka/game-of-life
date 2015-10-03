@@ -5,6 +5,8 @@ This repo contains an exercise for the tenth workshop - our first Code Retreat. 
 
 We've restructured the repository to provide a quick-start to TDD with RSpec and to mimic the setup we have been using in the workshops. The code to be created is found in the ``lib/`` directory, and we have supplied unit tests in the ``spec/`` directory.
 
+There is a Sparse Matrix approach in the 'rhn' branch. This was created in the Code Retreat at Ruby Hack Night on September 30, 2015. Thanks to Mark Campbell of The Score for valuable input and guidance.
+
 ###Setup
 
 Here are the steps to get you started with the repo. We assume, naturally, that you have a working development machine with Ruby 1.9 or better on it. At Ryatta Group we use rbenv, and so we've included some optional elements - just skip them if you're using rvm or are not versioning your Ruby.
