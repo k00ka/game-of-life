@@ -3,6 +3,7 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 require "cell"
 require "world"
+require "patterns"
 
 RSpec.describe GameOfLife::World do
   it { is_expected.to be_an_instance_of described_class }
@@ -137,6 +138,54 @@ RSpec.describe GameOfLife::World do
     end
   end
 
+  describe "#to_s" do
+    context "without cells" do
+      it "prints empty" do
+        expect(build_world.to_s).to be_empty
+      end
+    end
+
+    context "with a single cell" do
+      let(:cell)  { random_cell }
+      let(:world) { build_world(cells: [cell]) }
+
+      it "prints three lines" do
+        expect(world.to_s.lines.count).to be 3
+      end
+
+      it "returns the grid" do
+        single = [
+          "- - -",
+          "- # -",
+          "- - -"
+        ].join("\n")
+        expect(world.to_s).to eql single
+      end
+    end
+
+    context "with multiple cells" do
+      let(:world) { build_world }
+
+      before do
+        GameOfLife::StaticPatterns::Beehive.coordinates.each do |coord|
+          world.new_cell_at(*coord)
+        end
+      end
+
+      it "retuns the beehive" do
+        beehive = [
+          "- - - - - -",
+          "- - # # - -",
+          "- # - - # -",
+          "- - # # - -",
+          "- - - - - -"
+        ].join("\n")
+
+        expect(world.to_s).to eql beehive
+      end
+    end
+  end
+
   describe "#step" do
     context "with a single cell" do
       subject(:cell)  { random_cell }
@@ -151,8 +200,9 @@ RSpec.describe GameOfLife::World do
       end
     end
 
-    shared_examples "a static pattern" do |pattern_title|
-      subject(:world) { build_world }
+    shared_examples "a static pattern" do |patter_class|
+      subject(:world)   { build_world }
+      let(:coordinates) { patter_class.coordinates }
 
       before do
         coordinates.each { |coord| world.new_cell_at *coord }
@@ -160,52 +210,13 @@ RSpec.describe GameOfLife::World do
         world.step
       end
 
-      it "#{pattern_title} remains static" do
+      it "#{patter_class.name} remains static" do
         expect(world.cells.map(&:coordinates)).to match_array coordinates
       end
     end
 
-    it_behaves_like "a static pattern", "block" do
-      # - - - -
-      # - # # -
-      # - # # -
-      # - - - -
-      let(:coordinates) do
-        [
-          [1, 1], [1, 2],
-          [2, 1], [2, 2]
-        ]
-      end
-    end
-
-    it_behaves_like "a static pattern", "beehive" do
-      # - - - - - -
-      # - - # # - -
-      # - # - - # -
-      # - - # # - -
-      # - - - - - -
-      let(:coordinates) do
-        [
-          [1, 3], [1, 4],
-          [2, 2], [2, 5],
-          [3, 3], [3, 4]
-        ]
-      end
-    end
-
-    it_behaves_like "a static pattern", "boat" do
-      # - - - - -
-      # - # # - -
-      # - # - # -
-      # - - # - -
-      # - - - - -
-      let(:coordinates) do
-        [
-          [1, 3],
-          [2, 2], [2, 4],
-          [3, 2], [3, 3]
-        ]
-      end
-    end
+    it_behaves_like "a static pattern", GameOfLife::StaticPatterns::Block
+    it_behaves_like "a static pattern", GameOfLife::StaticPatterns::Beehive
+    it_behaves_like "a static pattern", GameOfLife::StaticPatterns::Boat
   end
 end
