@@ -229,23 +229,24 @@ RSpec.describe GameOfLife::World do
     it_behaves_like "a static pattern", GameOfLife::StaticPatterns::Boat
 
     shared_examples "a repeating pattern" do |pattern_class|
-      subject(:world) { build_world coordinates: pattern_class.cycle.first }
+      (0...(pattern_class.cycle.length - 1)).each do |index|
+        it "steps from step #{index + 1} to step #{index + 2}" do
+          world = build_world coordinates: pattern_class.cycle[index]
+          world.step
 
-      (1...pattern_class.cycle.length).each do |steps|
-        it "steps from step #{steps} to step #{steps + 1}" do
-          steps.times { world.step }
-
-          expect(world.cells.map(&:coordinates)).to match_array pattern_class.cycle[steps]
+          expect(world.cells.map(&:coordinates)).to match_array pattern_class.cycle[index + 1]
         end
       end
 
       it "cycles back to beginning" do
-        pattern_class.cycle.length.times { world.step }
+        world = build_world coordinates: pattern_class.cycle.last
+        world.step
 
         expect(world.cells.map(&:coordinates)).to match_array pattern_class.cycle.first
       end
     end
 
     it_behaves_like "a repeating pattern", GameOfLife::RepeatingPatterns::Blinker
+    it_behaves_like "a repeating pattern", GameOfLife::RepeatingPatterns::Pulsar
   end
 end
