@@ -1,5 +1,5 @@
-#Advanced developers: Uncomment the following understand more about the RSpec "focus" filter
-require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+# Advanced developers: Uncomment the following understand more about the RSpec "focus" filter
+require File.expand_path(File.dirname(__FILE__) + "/spec_helper")
 
 require "cell"
 require "world"
@@ -22,6 +22,15 @@ RSpec.describe GameOfLife::World do
 
       it "is a world with life!" do
         expect(subject.cells).to be_any
+      end
+    end
+
+    context "with coordinates" do
+      let(:coordinates) { [[1, 1], [2, 2], [3, 3]] }
+      subject(:world)   { described_class.new coordinates: coordinates }
+
+      it "creates cells at coordinates" do
+        expect(world.cells.map(&:coordinates)).to match_array coordinates
       end
     end
   end
@@ -59,8 +68,8 @@ RSpec.describe GameOfLife::World do
   describe "#add_cell" do
     it { is_expected.to respond_to :add_cell }
 
-    context "when cell doesn't already exist" do
-      subject    {described_class.new }
+    context "when cell does not already exist" do
+      subject    { described_class.new }
       let(:cell) { random_cell }
 
       before do
@@ -200,9 +209,9 @@ RSpec.describe GameOfLife::World do
       end
     end
 
-    shared_examples "a static pattern" do |patter_class|
+    shared_examples "a static pattern" do |pattern_class|
       subject(:world)   { build_world }
-      let(:coordinates) { patter_class.coordinates }
+      let(:coordinates) { pattern_class.coordinates }
 
       before do
         coordinates.each { |coord| world.new_cell_at *coord }
@@ -210,7 +219,7 @@ RSpec.describe GameOfLife::World do
         world.step
       end
 
-      it "#{patter_class.name} remains static" do
+      it "#{pattern_class.name} remains static" do
         expect(world.cells.map(&:coordinates)).to match_array coordinates
       end
     end
@@ -218,5 +227,25 @@ RSpec.describe GameOfLife::World do
     it_behaves_like "a static pattern", GameOfLife::StaticPatterns::Block
     it_behaves_like "a static pattern", GameOfLife::StaticPatterns::Beehive
     it_behaves_like "a static pattern", GameOfLife::StaticPatterns::Boat
+
+    shared_examples "a repeating pattern" do |pattern_class|
+      subject(:world) { build_world coordinates: pattern_class.cycle.first }
+
+      (1...pattern_class.cycle.length).each do |steps|
+        it "steps from step #{steps} to step #{steps + 1}" do
+          steps.times { world.step }
+
+          expect(world.cells.map(&:coordinates)).to match_array pattern_class.cycle[steps]
+        end
+      end
+
+      it "cycles back to beginning" do
+        pattern_class.cycle.length.times { world.step }
+
+        expect(world.cells.map(&:coordinates)).to match_array pattern_class.cycle.first
+      end
+    end
+
+    it_behaves_like "a repeating pattern", GameOfLife::RepeatingPatterns::Blinker
   end
 end

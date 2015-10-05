@@ -44,4 +44,37 @@ module GameOfLife
       end
     end
   end
+
+  module RepeatingPatterns
+
+    module Blinker
+      def self.cycle
+        [self.step_one, self.step_two]
+      end
+
+      # - - - - -
+      # - - - - -
+      # - # # # -
+      # - - - - -
+      # - - - - -
+      def self.step_one
+        [
+          [2, 3], [3, 3], [4, 3]
+        ]
+      end
+
+      # - - - - -
+      # - - # - -
+      # - - # - -
+      # - - # - -
+      # - - - - -
+      def self.step_two
+        [
+          [3, 2],
+          [3, 3],
+          [3, 4]
+        ]
+      end
+    end
+  end
 end

@@ -2,13 +2,18 @@ module GameOfLife
   class World
     def initialize(options = {})
       options = {
-        cells: Array.new
+        cells:       nil,
+        coordinates: nil
       }.merge(options)
 
       @cells = Array.new
 
       if options[:cells].respond_to?(:each)
         options[:cells].each { |cell| add_cell(cell) }
+      end
+
+      if options[:coordinates].respond_to?(:each)
+        options[:coordinates].each { |coord| new_cell_at(*coord) }
       end
     end
 
@@ -45,9 +50,17 @@ module GameOfLife
     end
 
     def step
-      dying_cells = cells.select(&:dying?)
+      dying_cells    = cells.select(&:dying?)
+      growing_coords = cells.map(&:influenced_coordinates)
+                            .flat_map { |set| set.to_a }
+                            .group_by { |coord| coord }
+                            .keep_if  { |coord, coords| coords.length == 3 }
+                            .keys
 
+      cells.each       { |cell| cell.remove_dying_neighbours }
       dying_cells.each { |dying| @cells.delete(dying) }
+
+      growing_coords.each { |coord| new_cell_at *coord }
     end
 
     private
