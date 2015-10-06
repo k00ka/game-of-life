@@ -30,14 +30,12 @@ RSpec.describe GameOfLife::World do
       subject(:world)   { described_class.new coordinates: coordinates }
 
       it "creates cells at coordinates" do
-        expect(world.cells.map(&:coordinates)).to match_array coordinates
+        expect(world).to match_cells_at coordinates
       end
     end
   end
 
   describe "#cells" do
-    it { is_expected.to respond_to :cells }
-
     context "with no cells" do
       subject { described_class.new }
 
@@ -66,8 +64,6 @@ RSpec.describe GameOfLife::World do
   end
 
   describe "#add_cell" do
-    it { is_expected.to respond_to :add_cell }
-
     context "when cell does not already exist" do
       subject    { described_class.new }
       let(:cell) { random_cell }
@@ -87,45 +83,35 @@ RSpec.describe GameOfLife::World do
   end
 
   describe "#new_cell_at" do
-    it { is_expected.to respond_to :new_cell_at }
-
     context "when new cell added to empty world" do
-      subject     { described_class.new }
-      let(:coord) { [rand(10).to_i, rand(10).to_i] }
+      subject        { described_class.new }
+      let(:coord)    { [rand(10).to_i, rand(10).to_i] }
+      let(:new_cell) { subject.new_cell_at(*coord) }
+
+      it "returns a cell" do
+        expect(new_cell).to be_an_instance_of GameOfLife::Cell
+      end
 
       it "adds a new cell" do
         expect {
-          subject.new_cell_at(*coord)
+          new_cell
         }.to change {
           subject.cells.count
         }.from(0).to 1
       end
 
       it "adds cell to world" do
-        new_cell = subject.new_cell_at(*coord)
-
-        expect(subject.cells).to include new_cell
+        added_cell = subject.new_cell_at(*coord)
+        expect(subject.cells).to include added_cell
       end
 
       it "sets world on cell" do
-        new_cell = subject.new_cell_at(*coord)
-
         expect(new_cell.world).to be subject
       end
 
       it "adds cell to supplied coordinates" do
-        subject.new_cell_at(*coord)
-
-        added_cell = subject.cells.first
-
-        expect(added_cell.x).to be coord.first
-        expect(added_cell.y).to be coord.last
-      end
-
-      it "returns the added cell" do
-        new_cell = subject.new_cell_at(*coord)
-
-        expect(new_cell).to be_an_instance_of GameOfLife::Cell
+        expect(new_cell.x).to be coord.first
+        expect(new_cell.y).to be coord.last
       end
     end
 
@@ -150,13 +136,13 @@ RSpec.describe GameOfLife::World do
   describe "#to_s" do
     context "without cells" do
       it "prints empty" do
-        expect(build_world.to_s).to be_empty
+        expect(described_class.new.to_s).to be_empty
       end
     end
 
     context "with a single cell" do
       let(:cell)  { random_cell }
-      let(:world) { build_world(cells: [cell]) }
+      let(:world) { described_class.new cells: [cell] }
 
       it "prints three lines" do
         expect(world.to_s.lines.count).to be 3
@@ -173,12 +159,10 @@ RSpec.describe GameOfLife::World do
     end
 
     context "with multiple cells" do
-      let(:world) { build_world }
-
-      before do
-        GameOfLife::StaticPatterns::Beehive.coordinates.each do |coord|
-          world.new_cell_at(*coord)
-        end
+      let(:world) do
+        described_class.new(
+          coordinates: GameOfLife::StaticPatterns::Beehive.coordinates
+        )
       end
 
       it "retuns the beehive" do
@@ -198,7 +182,7 @@ RSpec.describe GameOfLife::World do
   describe "#step" do
     context "with a single cell" do
       subject(:cell)  { random_cell }
-      subject(:world) { build_world(cells: [cell]) }
+      subject(:world) { described_class.new(cells: [cell]) }
 
       before do
         world.step
@@ -210,7 +194,7 @@ RSpec.describe GameOfLife::World do
     end
 
     shared_examples "a static pattern" do |pattern_class|
-      subject(:world)   { build_world }
+      subject(:world)   { described_class.new }
       let(:coordinates) { pattern_class.coordinates }
 
       before do
@@ -220,7 +204,7 @@ RSpec.describe GameOfLife::World do
       end
 
       it "#{pattern_class.name} remains static" do
-        expect(world.cells.map(&:coordinates)).to match_array coordinates
+        expect(world).to match_cells_at coordinates
       end
     end
 
@@ -231,18 +215,30 @@ RSpec.describe GameOfLife::World do
     shared_examples "a repeating pattern" do |pattern_class|
       (0...(pattern_class.cycle.length - 1)).each do |index|
         it "steps from step #{index + 1} to step #{index + 2}" do
-          world = build_world coordinates: pattern_class.cycle[index]
+          world = GameOfLife::World.new(coordinates: pattern_class.cycle[index])
           world.step
 
-          expect(world.cells.map(&:coordinates)).to match_array pattern_class.cycle[index + 1]
+          expect(world).to match_cells_at pattern_class.cycle[index + 1]
         end
       end
 
       it "cycles back to beginning" do
-        world = build_world coordinates: pattern_class.cycle.last
+        world = GameOfLife::World.new(coordinates: pattern_class.cycle.last)
         world.step
 
-        expect(world.cells.map(&:coordinates)).to match_array pattern_class.cycle.first
+        expect(world).to match_cells_at pattern_class.cycle.first
+      end
+
+      context "after full period" do
+        subject(:world) { GameOfLife::World.new(coordinates: pattern_class.cycle.first) }
+
+        before do
+          pattern_class.cycle.length.times { world.step }
+        end
+
+        it "returns to begining" do
+          expect(world.cells.map(&:coordinates)).to match_array pattern_class.cycle.first
+        end
       end
     end
 
