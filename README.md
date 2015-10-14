@@ -93,6 +93,13 @@ rspec ./spec/game_of_life_spec.rb:10 # GameOfLife#something returns an empty boa
 
 The text ``1 failure`` means you're currently failing! Now go fix some code and share what you've learned with the group.
 
-###Final Notes
+###Game of Life Rules
 
-DHH has come out to say that he doesn't follow TDD [http://david.heinemeierhansson.com/2014/tdd-is-dead-long-live-testing.html]. His main concerns were with regard to the unintended impacts on system design that TDD were creating. His preferred approach is to focus on System Testing. Stay tuned to the Ryatta blog for an imformative post about this very topic (how timely!)
+The universe of the Game of Life is an infinite two-dimensional orthogonal grid of square cells, each of which is in one of two possible states, live or dead. Every cell interacts with its eight neighbors, which are the cells that are directly horizontally, vertically, or diagonally adjacent. At each step in time, the following transitions occur:
+
+* Any live cell with fewer than two live neighbours dies, as if caused by underpopulation.
+* Any live cell with more than three live neighbours dies, as if by overcrowding.
+* Any live cell with two or three live neighbours lives on to the next generation.
+* Any dead cell with exactly three live neighbours becomes a live cell.
+
+The initial pattern constitutes the seed of the system. The first generation is created by applying the above rules simultaneously to every cell in the seed?births and deaths happen simultaneously, and the discrete moment at which this happens is sometimes called a tick (in other words, each generation is a pure function of the one before). The rules continue to be applied repeatedly to create further generations.
