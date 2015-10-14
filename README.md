@@ -1,3 +1,60 @@
+#Update Oct 14, 2015: Comments on Code Simplification with Truth Tables
+
+Consider the test to see if a cell should (continue to) be alive in the next step:
+
+Any live cell with fewer than two live neighbours dies, as if caused by underpopulation.
+Any live cell with more than three live neighbours dies, as if by overcrowding.
+Any live cell with two or three live neighbours lives on to the next generation.
+Any dead cell with exactly three live neighbours becomes a live cell.
+
+Here is an approach that implements the tests are they are written:
+
+``` ruby
+def cell_alive_in_next_step?(i,j)
+  if cell_state(i,j) == :alive
+    if cell_neighbour_count(i,j) < 2
+      alive = false
+    elsif cell_neighbour_count(i,j) > 3
+      alive = false
+    else
+      alive = true
+    end
+  else
+    if cell_neighbour_count(i,j) == 3
+      alive = true
+    else
+      alive = false
+    end
+  end
+  alive
+end
+```
+
+How can we improve on this code?
+The answer is to create a “truth table” as follows:
+
+
+|current # neighbours|If cell is alive now|If cell is dead now|
+|:------------------:|:-----------------:|:-----------------:|
+|0|cell becomes dead|cell stays dead|
+|1|cell becomes dead|cell stays dead|
+|2|cell stays alive|cell stays dead|
+|3|cell stays alive|cell becomes alive|
+|4|cell becomes dead|cell stays dead|
+|5|cell becomes dead|cell stays dead|
+|6|cell becomes dead|cell stays dead|
+|7|cell becomes dead|cell stays dead|
+|8|cell becomes dead|cell stays dead|
+
+Consider the simplest way to create these truths. Notice that there are far fewer alive results than there are dead. It’s going to be easier to outline the cases where the cell will be alive (3 states) than those in which it is dead (15 states). We can either approach the tests vertically or horizontally - testing for alive/dead first, or testing for the neighbour count first. We will choose the latter because we note that all outcomes for the case neighbours == 3 have the same result (alive). This fact simplifies the code. Finally, we must deal with the one remaining case use a compound test. The result is a much, much simpler to understand test: the cell is alive if it has exactly three neighbours, or if it is already alive, exactly 2 neighbours.
+
+```ruby
+def cell_alive_in_next_step?(i,j)
+  cell_neighbour_count(i,j) == 3 || (cell_neighbour_count(i,j) == 2 && cell_state(i.j) == :alive)
+end
+```
+Because the above code does not easily flow from the “standard” definition of the rules, some would say it is less understandable. While I agree it is non-trivial to determine how this code implements the rules, we have things called Unit Tests that can enumerate all of the cases and prove that this code is “correct”. Furthermore, it is our job as coders (or “encoders”) to analyze and convert our domain statements into the simplest, most concise definitions possible. Less code is, generally, better code, and our mild efforts pay off in this case with much simpler, easier to maintain and faster running (by virtue of the lower number of steps in the average execution path) code. For many, this simple and elegant outcome is what motivates us to go to work every day.
+
 #Update Oct 2, 2015: Sparse Matrix Approach
 
 The game board is a key entity in the Game of Life. One of the core decisions is how to separate the concepts of Board and Cell. Almost all approaches end up with one or the other of Board or Cell being small or non-existent. The relationship between Cells must be modelled either by an ordered structure, or by connections between Cells (such as my suggestion of creating links from a Cell to its up-to-8 neighbours). In the former case, the Board ends up being a two-dimensional Array (or similar) with a vestigial Cell class that needs to ask the Board for help with everything except the answer to "Are you alive?". In the latter case, the Cell is a first-class entity and, unless the Board and Cell are highly coupled, the Board can do nothing but point to the "first" Cell.
