@@ -33,9 +33,9 @@ module GameOfLife
 
     def add_cell(cell)
       cell.world = self
+      # TODO should clear old neighbours!
 
       @cells.each { |existing_cell| existing_cell.new_cell(cell) }
-
       @cells << cell
 
       cell
@@ -51,13 +51,9 @@ module GameOfLife
 
     def step
       dying_cells    = cells.select(&:dying?)
-      growing_coords = cells.map(&:influenced_coordinates)
-                            .flat_map { |set| set.to_a }
-                            .group_by { |coord| coord }
-                            .keep_if  { |coord, coords| coords.length == 3 }
-                            .keys
+      growing_coords = cell_growth_coordinates
 
-      cells.each       { |cell| cell.remove_dying_neighbours }
+      cells.each       { |cell| cell.remove_neighbours(dying_cells) }
       dying_cells.each { |dying| @cells.delete(dying) }
 
       growing_coords.each { |coord| new_cell_at *coord }
@@ -86,6 +82,14 @@ module GameOfLife
       grid << empty_row
 
       grid.map { |row| row.join(" ") }.join("\n")
+    end
+
+    def cell_growth_coordinates
+      cells.map(&:influenced_coordinates)
+           .flat_map { |set| set.to_a }
+           .group_by { |coord| coord }
+           .keep_if  { |_, coords| coords.length == 3 }
+           .keys
     end
   end
 end

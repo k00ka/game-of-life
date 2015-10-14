@@ -213,7 +213,7 @@ RSpec.describe GameOfLife::World do
     it_behaves_like "a static pattern", GameOfLife::StaticPatterns::Boat
 
     shared_examples "a repeating pattern" do |pattern_class|
-      (0...(pattern_class.cycle.length - 1)).each do |index|
+      (0..(pattern_class.cycle.length - 2)).each do |index|
         it "steps from step #{index + 1} to step #{index + 2}" do
           world = GameOfLife::World.new(coordinates: pattern_class.cycle[index])
           world.step
@@ -222,7 +222,7 @@ RSpec.describe GameOfLife::World do
         end
       end
 
-      it "cycles back to beginning" do
+      it "steps back to beginning" do
         world = GameOfLife::World.new(coordinates: pattern_class.cycle.last)
         world.step
 
