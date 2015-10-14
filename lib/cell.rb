@@ -25,8 +25,8 @@ module GameOfLife
       end
     end
 
-    def remove_dying_neighbours
-      @neighbours.delete_if { |neighbour| neighbour.dying? }
+    def remove_neighbours cells
+      @neighbours -= cells
     end
 
     def influenced_coordinates

@@ -222,7 +222,7 @@ RSpec.describe GameOfLife::Cell do
     end
   end
 
-  describe "#remove_dying_neighbours" do
+  describe "#remove_neighbours" do
     subject(:cell)  { random_cell }
     let(:neighbour) do
       neighbour = neighbour_cell_for(cell)
@@ -230,23 +230,18 @@ RSpec.describe GameOfLife::Cell do
       neighbour
     end
 
-    context "when neighbour not dying" do
-      before do
-        cell.remove_dying_neighbours
-      end
+    context "with no cells" do
+      it "none are removed" do
+        cell.remove_neighbours Array.new
 
-      it "does not remove neighbour" do
         expect(cell.neighbours).to include neighbour
       end
     end
 
-    context "when neighbour is dying" do
-      before do
-        allow(neighbour).to receive(:dying?) { true }
-        cell.remove_dying_neighbours
-      end
+    context "with cells" do
+      it "the cells are removed" do
+        cell.remove_neighbours([neighbour])
 
-      it "removes neighbour" do
         expect(cell.neighbours).to_not include neighbour
       end
     end
