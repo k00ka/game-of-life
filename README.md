@@ -2,10 +2,10 @@
 
 Consider the test to see if a cell should (continue to) be alive in the next step:
 
-Any live cell with fewer than two live neighbours dies, as if caused by underpopulation.
-Any live cell with more than three live neighbours dies, as if by overcrowding.
-Any live cell with two or three live neighbours lives on to the next generation.
-Any dead cell with exactly three live neighbours becomes a live cell.
+1. Any live cell with fewer than two live neighbours dies, as if caused by underpopulation.
+1. Any live cell with more than three live neighbours dies, as if by overcrowding.
+1. Any live cell with two or three live neighbours lives on to the next generation.
+1. Any dead cell with exactly three live neighbours becomes a live cell.
 
 Here is an approach that implements the tests are they are written:
 
