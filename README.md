@@ -3,7 +3,7 @@
 > 
 > Your last Meetup messages reminded me of this. I wanted to try the OO approach and animate the cells on the command line.
 > 
-> I put in some patterns from wikipedia and wrote tests against those. I think the best animation is rake animate[pulsar]
+> I put in some patterns from wikipedia and wrote tests against those. I think the best animation is ``rake animate[pulsar]``
 > 
 > Thanks,
 > Jason
@@ -11,15 +11,15 @@
 Here are all of the patterns that Jason set up:
 
 ##StaticPatterns
-  block
-  beehive
-  boat
+* block
+* beehive
+* boat
 
 ##RepeatingPatterns
-  blinker
-  pulsar
+* blinker
+* pulsar
 
-Use "rake animate[pattern]" where pattern is one of the names above.
+Use ``rake animate[pattern]`` where _pattern_ is one of the names above.
 
 Thanks for your contribution, Jason! - DA
 
