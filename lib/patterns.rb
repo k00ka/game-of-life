@@ -52,6 +52,10 @@ module GameOfLife
         [self.step_one, self.step_two]
       end
 
+      def self.coordinates
+        cycle.first
+      end
+
       # - - - - -
       # - - - - -
       # - # # # -
@@ -80,6 +84,10 @@ module GameOfLife
     module Pulsar
       def self.cycle
         [self.step_one, self.step_two, self.step_three]
+      end
+
+      def self.coordinates
+        cycle.first
       end
 
       # - - - - - - - - - - - - - - -

@@ -1,6 +1,7 @@
 require_relative "lib/cell"
 require_relative "lib/patterns"
 require_relative "lib/world"
+require_relative "lib/world_animator"
 
 desc 'Run the flog metrics tool on the GameOfLife class'
 task :flog do
@@ -103,6 +104,23 @@ task :compare, :pattern do |t, args|
   pattern.cycle.length.times { full_cycle.step }
 
   print_comparison(first_step, full_cycle)
+end
+
+desc "animates a known pattern"
+task :animate, [:pattern, :steps, :delay] do |t, args|
+  args.with_defaults(steps: 10, delay: 0.5)
+
+  pattern_map = known_patterns_map
+
+  unless pattern_map.include? args[:pattern]
+    puts "Pattern #{args[:pattern]} not found!"
+    next
+  end
+
+  pattern = pattern_map[args[:pattern]]
+  world   = GameOfLife::World.new(coordinates: pattern.coordinates)
+
+  WorldAnimator.new(world, args[:steps].to_i, args[:delay].to_f).animate
 end
 
 private
